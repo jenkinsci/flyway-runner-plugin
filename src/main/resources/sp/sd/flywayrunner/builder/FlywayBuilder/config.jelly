@@ -1,0 +1,42 @@
+<j:jelly xmlns:j="jelly:core"
+         xmlns:f="/lib/form">
+
+    <f:entry title="${%InstallationName}">
+        <select class="setting-input" name="FlywayBuilder.installationName">
+            <j:forEach var="inst" items="${descriptor.installations}">
+                <f:option selected="${inst.name==instance.installationName}">${inst.name}</f:option>
+            </j:forEach>
+        </select>
+    </f:entry>
+
+    <f:entry title="Command" field="flywayCommand"
+            description="Command to run, i.e. 'migrate', 'info', 'validate', etc.">
+        <f:textbox value="${instance.flywayCommand}"/>
+    </f:entry>
+    
+    <f:entry title="Database URL" field="url" description="example: jdbc:mysql://mysqlserver:3306/mydb">
+        <f:textbox value="${instance.url}"/>
+    </f:entry>
+    
+    <f:entry title="Username" field="username"
+            description="Username used to connect to the database">
+        <f:textbox value="${instance.username}"/>
+    </f:entry>
+
+    <f:entry title="Password" field="password"
+            description="Password used to connect to the database (will be masked in build log).">
+        <f:textbox value="${instance.password}"/>
+    </f:entry>
+	
+	<f:entry title="Locations" field="locations"
+            description="Comma-separated list of locations to scan recursively for migrations. The location type is determined by its prefix. Unprefixed locations or locations starting with classpath: point to a package on the classpath and may contain both sql and java-based migrations. Locations starting with filesystem: point to a directory on the filesystem and may only contain sql migrations. .">
+        <f:textbox value="${instance.locations}"/>
+    </f:entry>
+   
+    <f:advanced>
+        <f:entry title="Other command line arguments" field="commandLineArgs">
+            <f:textarea name="commandLineArgs" value="${instance.commandLineArgs}"/>
+        </f:entry>
+    </f:advanced>
+
+</j:jelly>

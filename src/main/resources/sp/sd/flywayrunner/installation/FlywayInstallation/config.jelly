@@ -1,0 +1,13 @@
+<j:jelly xmlns:j="jelly:core"
+         xmlns:f="/lib/form">
+    <!--
+      Flyway installations.
+    -->
+    <f:entry title="${%Name}" field="name">
+        <f:textbox/>
+    </f:entry>
+    <f:entry title="${%Path to Executable}" field="home">
+        <f:textbox/>
+    </f:entry>
+
+</j:jelly>
