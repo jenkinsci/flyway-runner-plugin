@@ -100,7 +100,7 @@ public class FlywayBuilder extends Builder {
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
 
-        ArgumentListBuilder cliCommand = composeFlywayCommand(build);
+        ArgumentListBuilder cliCommand = composeFlywayCommand(build, listener);
 				
         int exitStatus = launcher.launch().cmds(cliCommand).stdout(listener).pwd(build.getWorkspace()).join();
 
@@ -108,25 +108,32 @@ public class FlywayBuilder extends Builder {
         return result;
     }
 
-    private ArgumentListBuilder composeFlywayCommand(AbstractBuild<?, ?> build) {
+    private ArgumentListBuilder composeFlywayCommand(AbstractBuild<?, ?> build, BuildListener listener) {
         ArgumentListBuilder cliCommand = new ArgumentListBuilder();
 
-        cliCommand.add(new File(getInstallation().getHome()));
+		try
+		{
+			cliCommand.add(new File(getInstallation().getHome()));
 
-        Util.addOptionIfPresent(cliCommand, CliOption.USERNAME, build.getEnvironment(listener).expand(username));
-        if (!Strings.isNullOrEmpty(password)) {            
-            cliCommand.addMasked(Util.OPTION_HYPHENS + CliOption.PASSWORD.getCliOption() + "=" + build.getEnvironment(listener).expand(password));
-        }
-        
-        Util.addOptionIfPresent(cliCommand, CliOption.URL, build.getEnvironment(listener).expand(url));
-        
-		Util.addOptionIfPresent(cliCommand, CliOption.LOCATIONS, build.getEnvironment(listener).expand(locations));
+			Util.addOptionIfPresent(cliCommand, CliOption.USERNAME, build.getEnvironment(listener).expand(username));
+			if (!Strings.isNullOrEmpty(password)) {            
+				cliCommand.addMasked(Util.OPTION_HYPHENS + CliOption.PASSWORD.getCliOption() + "=" + build.getEnvironment(listener).expand(password));
+			}
+			
+			Util.addOptionIfPresent(cliCommand, CliOption.URL, build.getEnvironment(listener).expand(url));
+			
+			Util.addOptionIfPresent(cliCommand, CliOption.LOCATIONS, build.getEnvironment(listener).expand(locations));
 
-        if (!Strings.isNullOrEmpty(commandLineArgs)) {
-            cliCommand.addTokenized(build.getEnvironment(listener).expand(commandLineArgs));
-        }       
+			if (!Strings.isNullOrEmpty(commandLineArgs)) {
+				cliCommand.addTokenized(build.getEnvironment(listener).expand(commandLineArgs));
+			}       
 
-        cliCommand.addTokenized(flywayCommand);
+			cliCommand.addTokenized(flywayCommand);
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace(listener.getLogger());
+		}
         return cliCommand;
     }
 
