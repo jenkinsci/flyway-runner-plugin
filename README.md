@@ -2,7 +2,7 @@ Jenkins Flyway Plugin
 
 About
 
-Adds Flyway as an available build step. See Flyway documentation at https://flywaydb.org/documentation/
+Adds Flyway as an available build step. See Flyway documentation at https://flywaydb.org/documentation/.
 Installation
 
     Install the flyway-runner plugin.
