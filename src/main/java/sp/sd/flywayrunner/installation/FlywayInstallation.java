@@ -18,6 +18,8 @@ import java.util.List;
 import sp.sd.flywayrunner.builder.FlywayBuilder;
 import org.kohsuke.stapler.DataBoundConstructor;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 
 public class FlywayInstallation extends ToolInstallation implements NodeSpecific<FlywayInstallation>,
         EnvironmentSpecific<FlywayInstallation> {
@@ -42,11 +44,13 @@ public class FlywayInstallation extends ToolInstallation implements NodeSpecific
         }
 
         @Override
+        @SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
         public FlywayInstallation[] getInstallations() {
             return Hudson.getInstance().getDescriptorByType(FlywayBuilder.StepDescriptor.class).getInstallations();
         }
 
         @Override
+        @SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
         public void setInstallations(FlywayInstallation... installations) {
             Hudson.getInstance().getDescriptorByType(FlywayBuilder.StepDescriptor.class).setInstallations(installations);
         }

@@ -16,7 +16,7 @@ import java.io.IOException;
 
 import sp.sd.flywayrunner.installation.FlywayInstallation;
 import org.kohsuke.stapler.DataBoundConstructor;
-
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import com.google.common.base.Strings;
 
 
@@ -99,36 +99,46 @@ public class FlywayBuilder extends Builder {
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
-
+    	boolean result = false;
         ArgumentListBuilder cliCommand = composeFlywayCommand(build, listener);
-				
-        int exitStatus = launcher.launch().cmds(cliCommand).stdout(listener).pwd(build.getWorkspace()).join();
-
-        boolean result = didErrorsOccur(build, exitStatus);
+			if(cliCommand != null)	
+			{
+				int exitStatus = launcher.launch().cmds(cliCommand).stdout(listener).pwd(build.getWorkspace()).join();
+				result = didErrorsOccur(build, exitStatus);
+			}
         return result;
     }
 
+    @SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     private ArgumentListBuilder composeFlywayCommand(AbstractBuild<?, ?> build, BuildListener listener) {
         ArgumentListBuilder cliCommand = new ArgumentListBuilder();
 
 		try
 		{
-			cliCommand.add(new File(getInstallation().getHome()));
-
-			Util.addOptionIfPresent(cliCommand, CliOption.USERNAME, build.getEnvironment(listener).expand(username));
-			if (!Strings.isNullOrEmpty(password)) {            
-				cliCommand.addMasked(Util.OPTION_HYPHENS + CliOption.PASSWORD.getCliOption() + "=" + build.getEnvironment(listener).expand(password));
+			if(getInstallation() != null && getInstallation().getHome() != null)
+			{
+				cliCommand.add(new File(getInstallation().getHome()));
+	
+				Util.addOptionIfPresent(cliCommand, CliOption.USERNAME, build.getEnvironment(listener).expand(username));
+				if (!Strings.isNullOrEmpty(password)) {            
+					cliCommand.addMasked(Util.OPTION_HYPHENS + CliOption.PASSWORD.getCliOption() + "=" + build.getEnvironment(listener).expand(password));
+				}
+				
+				Util.addOptionIfPresent(cliCommand, CliOption.URL, build.getEnvironment(listener).expand(url));
+				
+				Util.addOptionIfPresent(cliCommand, CliOption.LOCATIONS, build.getEnvironment(listener).expand(locations));
+	
+				if (!Strings.isNullOrEmpty(commandLineArgs)) {
+					cliCommand.addTokenized(build.getEnvironment(listener).expand(commandLineArgs));
+				}       
+	
+				cliCommand.addTokenized(flywayCommand);
 			}
-			
-			Util.addOptionIfPresent(cliCommand, CliOption.URL, build.getEnvironment(listener).expand(url));
-			
-			Util.addOptionIfPresent(cliCommand, CliOption.LOCATIONS, build.getEnvironment(listener).expand(locations));
-
-			if (!Strings.isNullOrEmpty(commandLineArgs)) {
-				cliCommand.addTokenized(build.getEnvironment(listener).expand(commandLineArgs));
-			}       
-
-			cliCommand.addTokenized(flywayCommand);
+			else
+			{
+				listener.fatalError("Flyway installation was not found.");
+				return null;
+			}
 		}
 		catch(Exception e)
 		{
@@ -186,7 +196,7 @@ public class FlywayBuilder extends Builder {
             super(FlywayBuilder.class);
             load();
         }
-
+        @SuppressFBWarnings(value = "EI_EXPOSE_REP")
         public FlywayInstallation[] getInstallations() {
             return installations;
         }
