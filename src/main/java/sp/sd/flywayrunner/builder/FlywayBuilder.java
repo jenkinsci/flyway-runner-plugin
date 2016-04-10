@@ -10,6 +10,7 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.tools.ToolInstallation;
 import hudson.util.ArgumentListBuilder;
+import hudson.util.Secret;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,7 +43,7 @@ public class FlywayBuilder extends Builder {
     /**
      * Password with which to connect to database.
      */
-    private String password;
+    private Secret password;
     /**
      * JDBC database connection URL.
      */
@@ -65,7 +66,7 @@ public class FlywayBuilder extends Builder {
                             String liquibaseCommand,
                             String installationName,
                             String username,
-                            String password,
+                            Secret password,
                             String url) {
         
         this.flywayCommand = flywayCommand;
@@ -120,8 +121,8 @@ public class FlywayBuilder extends Builder {
 				cliCommand.add(new File(getInstallation().getHome()));
 	
 				Util.addOptionIfPresent(cliCommand, CliOption.USERNAME, build.getEnvironment(listener).expand(username));
-				if (!Strings.isNullOrEmpty(password)) {            
-					cliCommand.addMasked(Util.OPTION_HYPHENS + CliOption.PASSWORD.getCliOption() + "=" + build.getEnvironment(listener).expand(password));
+				if (password != null) {            
+					cliCommand.addMasked(Util.OPTION_HYPHENS + CliOption.PASSWORD.getCliOption() + "=" + build.getEnvironment(listener).expand(Secret.toString(password)));
 				}
 				
 				Util.addOptionIfPresent(cliCommand, CliOption.URL, build.getEnvironment(listener).expand(url));
@@ -171,7 +172,7 @@ public class FlywayBuilder extends Builder {
         return username;
     }
 
-    public String getPassword() {
+    public Secret getPassword() {
         return password;
     }
 	
