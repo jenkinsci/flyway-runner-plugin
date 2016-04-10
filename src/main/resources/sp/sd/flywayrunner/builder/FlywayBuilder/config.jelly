@@ -26,7 +26,7 @@
 
     <f:entry title="Password" field="password"
             description="Password used to connect to the database (will be masked in build log).">
-        <f:textbox value="${instance.password}"/>
+        <f:password value="${instance.password}"/>
     </f:entry>
 	
 	<f:entry title="Locations" field="locations"
