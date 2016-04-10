@@ -151,13 +151,7 @@ public class FlywayBuilder extends Builder {
         boolean result = true;
         if (exitStatus != 0) {
             result = false;
-        } else {
-            // check for errors that don't result in an exit code less than 0.
-            File logFile = build.getLogFile();
-            if (Util.doesErrorExist(logFile)) {
-                result = false;
-            }
-        }
+        } 
         return result;
     }
 
