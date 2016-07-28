@@ -1,24 +1,40 @@
 package sp.sd.flywayrunner.builder;
 
+import com.cloudbees.plugins.credentials.CredentialsMatchers;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.StandardCredentials;
+import com.cloudbees.plugins.credentials.common.StandardUsernameCredentials;
+import com.cloudbees.plugins.credentials.common.StandardUsernameListBoxModel;
+import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import com.cloudbees.plugins.credentials.domains.DomainRequirement;
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.*;
+import hudson.security.ACL;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.tools.ToolInstallation;
 import hudson.util.ArgumentListBuilder;
+import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Collections;
 
+import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
+import org.kohsuke.stapler.AncestorInPath;
 import sp.sd.flywayrunner.installation.FlywayInstallation;
 import org.kohsuke.stapler.DataBoundConstructor;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import com.google.common.base.Strings;
+
+import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
 
 
 /**
@@ -58,6 +74,10 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
      */
     private final String locations;
 
+    private final
+    @CheckForNull
+    String credentialsId;
+
     @Extension
     public static final StepDescriptor DESCRIPTOR = new StepDescriptor();
 
@@ -67,7 +87,8 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
                          String password,
                          String url,
                          String locations,
-                         String commandLineArgs) {
+                         String commandLineArgs,
+                         String credentialsId) {
 
         this.flywayCommand = flywayCommand;
         this.installationName = installationName;
@@ -76,6 +97,7 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
         this.url = url;
         this.locations = locations;
         this.commandLineArgs = commandLineArgs;
+        this.credentialsId = credentialsId;
     }
 
     public FlywayInstallation getInstallation() {
@@ -118,9 +140,9 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
             if (getInstallation() != null && getInstallation().getHome() != null) {
                 cliCommand.add(new File(getInstallation().getHome()));
 
-                Util.addOptionIfPresent(cliCommand, CliOption.USERNAME, build.getEnvironment(listener).expand(username));
+                Util.addOptionIfPresent(cliCommand, CliOption.USERNAME, getUsername(build.getEnvironment(listener)));
                 if (password != null) {
-                    cliCommand.addMasked(Util.OPTION_HYPHENS + CliOption.PASSWORD.getCliOption() + "=" + build.getEnvironment(listener).expand(Secret.decrypt(password).getPlainText()));
+                    cliCommand.addMasked(Util.OPTION_HYPHENS + CliOption.PASSWORD.getCliOption() + "=" + getCredentialsPassword(build.getEnvironment(listener)));
                 }
 
                 Util.addOptionIfPresent(cliCommand, CliOption.URL, build.getEnvironment(listener).expand(url));
@@ -178,7 +200,62 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
         return url;
     }
 
-    public static final class StepDescriptor extends BuildStepDescriptor<Builder> {
+    public
+    @Nullable
+    String getCredentialsId() {
+        return credentialsId;
+    }
+
+    public StandardUsernameCredentials getCredentials() {
+        StandardUsernameCredentials credentials = null;
+        try {
+
+            credentials = credentialsId == null ? null : this.lookupSystemCredentials(credentialsId);
+            if (credentials != null) {
+                return credentials;
+            }
+        } catch (Throwable t) {
+
+        }
+
+        return credentials;
+    }
+
+    public static StandardUsernameCredentials lookupSystemCredentials(String credentialsId) {
+        return CredentialsMatchers.firstOrNull(
+                CredentialsProvider
+                        .lookupCredentials(StandardUsernameCredentials.class, Jenkins.getInstance(), ACL.SYSTEM, Collections.<DomainRequirement>emptyList()),
+                CredentialsMatchers.withId(credentialsId)
+        );
+    }
+
+    public String getUsername(EnvVars environment) {
+        String Username = null;
+        if (Strings.isNullOrEmpty(username)) {
+            Username = "";
+        } else {
+            Username = environment.expand(username);
+        }
+        if (!Strings.isNullOrEmpty(credentialsId)) {
+            Username = this.getCredentials().getUsername();
+        }
+        return Username;
+    }
+
+    public String getCredentialsPassword(EnvVars environment) {
+        String Password = null;
+        if (password == null) {
+            Password = "";
+        } else {
+            Password = environment.expand(password);
+        }
+        if (!Strings.isNullOrEmpty(credentialsId)) {
+            Password = Secret.toString(StandardUsernamePasswordCredentials.class.cast(this.getCredentials()).getPassword());
+        }
+        return Password;
+    }
+
+    public static final class StepDescriptor <C extends StandardCredentials> extends BuildStepDescriptor<Builder> {
         private volatile FlywayInstallation[] installations = new FlywayInstallation[0];
 
         public StepDescriptor() {
@@ -208,6 +285,13 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
         @Override
         public String getDisplayName() {
             return "Invoke Flyway";
+        }
+
+        public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item owner) {
+            if (owner == null || !owner.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
+            return new StandardUsernameListBoxModel().withEmptySelection().withAll(CredentialsProvider.lookupCredentials(StandardUsernamePasswordCredentials.class, owner, ACL.SYSTEM, Collections.<DomainRequirement>emptyList()));
         }
 
     }
