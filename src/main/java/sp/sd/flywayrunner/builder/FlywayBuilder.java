@@ -7,10 +7,7 @@ import com.cloudbees.plugins.credentials.common.StandardUsernameCredentials;
 import com.cloudbees.plugins.credentials.common.StandardUsernameListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
-import hudson.EnvVars;
-import hudson.Extension;
-import hudson.FilePath;
-import hudson.Launcher;
+import hudson.*;
 import hudson.model.*;
 import hudson.security.ACL;
 import hudson.tasks.BuildStepDescriptor;
@@ -128,21 +125,21 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
             result = didErrorsOccur(build, exitStatus);
         }
         if (!result) {
-            build.setResult(Result.FAILURE);
+            throw new AbortException("Build step 'Invoke Flyway' failed due to errors.");
         }
     }
 
     @SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     private ArgumentListBuilder composeFlywayCommand(Run build, TaskListener listener) {
         ArgumentListBuilder cliCommand = new ArgumentListBuilder();
-
+        Item project = build.getParent();
         try {
             if (getInstallation() != null && getInstallation().getHome() != null) {
                 cliCommand.add(new File(getInstallation().getHome()));
 
-                Util.addOptionIfPresent(cliCommand, CliOption.USERNAME, getUsername(build.getEnvironment(listener)));
+                Util.addOptionIfPresent(cliCommand, CliOption.USERNAME, getUsername(build.getEnvironment(listener), project));
                 if (password != null) {
-                    cliCommand.addMasked(Util.OPTION_HYPHENS + CliOption.PASSWORD.getCliOption() + "=" + getCredentialsPassword(build.getEnvironment(listener)));
+                    cliCommand.addMasked(Util.OPTION_HYPHENS + CliOption.PASSWORD.getCliOption() + "=" + getCredentialsPassword(build.getEnvironment(listener), project));
                 }
 
                 Util.addOptionIfPresent(cliCommand, CliOption.URL, build.getEnvironment(listener).expand(url));
@@ -206,11 +203,11 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
         return credentialsId;
     }
 
-    public StandardUsernameCredentials getCredentials() {
+    public StandardUsernameCredentials getCredentials(Item project) {
         StandardUsernameCredentials credentials = null;
         try {
 
-            credentials = credentialsId == null ? null : this.lookupSystemCredentials(credentialsId);
+            credentials = credentialsId == null ? null : this.lookupSystemCredentials(credentialsId, project);
             if (credentials != null) {
                 return credentials;
             }
@@ -221,15 +218,15 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
         return credentials;
     }
 
-    public static StandardUsernameCredentials lookupSystemCredentials(String credentialsId) {
+    public static StandardUsernameCredentials lookupSystemCredentials(String credentialsId, Item project) {
         return CredentialsMatchers.firstOrNull(
                 CredentialsProvider
-                        .lookupCredentials(StandardUsernameCredentials.class, Jenkins.getInstance(), ACL.SYSTEM, Collections.<DomainRequirement>emptyList()),
+                        .lookupCredentials(StandardUsernameCredentials.class, project, ACL.SYSTEM, Collections.<DomainRequirement>emptyList()),
                 CredentialsMatchers.withId(credentialsId)
         );
     }
 
-    public String getUsername(EnvVars environment) {
+    public String getUsername(EnvVars environment, Item project) {
         String Username = null;
         if (Strings.isNullOrEmpty(username)) {
             Username = "";
@@ -237,12 +234,12 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
             Username = environment.expand(username);
         }
         if (!Strings.isNullOrEmpty(credentialsId)) {
-            Username = this.getCredentials().getUsername();
+            Username = this.getCredentials(project).getUsername();
         }
         return Username;
     }
 
-    public String getCredentialsPassword(EnvVars environment) {
+    public String getCredentialsPassword(EnvVars environment, Item project) {
         String Password = null;
         if (password == null) {
             Password = "";
@@ -250,7 +247,7 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
             Password = environment.expand(password);
         }
         if (!Strings.isNullOrEmpty(credentialsId)) {
-            Password = Secret.toString(StandardUsernamePasswordCredentials.class.cast(this.getCredentials()).getPassword());
+            Password = Secret.toString(StandardUsernamePasswordCredentials.class.cast(this.getCredentials(project)).getPassword());
         }
         return Password;
     }
