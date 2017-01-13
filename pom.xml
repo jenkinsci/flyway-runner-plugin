@@ -19,8 +19,7 @@
         <java.level>7</java.level>
         <jenkins-test-harness.version>2.3</jenkins-test-harness.version>
         <flyway.install.version>4.0.3</flyway.install.version>
-        <flyway.install.dir>${project.build.directory}/flyway</flyway.install.dir>
-        <flyway.home>${flyway.install.dir}/flyway-${flyway.install.version}</flyway.home>
+        <flyway.home>${project.build.directory}/flyway-${flyway.install.version}</flyway.home>
 
     </properties>
 
@@ -120,24 +119,7 @@
                                     <version>${flyway.install.version}</version>
                                     <type>tar.gz</type>
                                     <overWrite>false</overWrite>
-                                    <outputDirectory>${flyway.install.dir}</outputDirectory>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>copy-h2-driver</id>
-                        <phase>process-test-resources</phase>
-                        <goals>
-                            <goal>copy</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>com.h2database</groupId>
-                                    <artifactId>h2</artifactId>
-                                    <overWrite>false</overWrite>
-                                    <outputDirectory>${flyway.home}/drivers</outputDirectory>
+                                    <outputDirectory>${project.build.directory}</outputDirectory>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>
@@ -147,7 +129,6 @@
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <!-- care is taken here not to override any existing system properties inherited from parent, albeit in a hackish way -->
                     <systemPropertyVariables>
                         <flyway.home>${flyway.home}</flyway.home>
                     </systemPropertyVariables>
