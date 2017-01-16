@@ -57,6 +57,18 @@ public class FlywayBuilderIntegrationTest {
         createFlywayJenkinsInstallation(flywayHome);
         migrationFileDirectory = temporaryFolder.newFolder("migrations");
         project = createFlywayJenkinsProject(migrationFileDirectory);
+
+        File dir = jenkinsRule.getInstance().getRootDir();
+        File updatesDir = new File(dir, "updates");
+
+        String filename = "sp.sd.flywayrunner.installation.FlywayInstaller";
+        InputStream resourceAsStream =
+                getClass().getResourceAsStream("/flyway-installer/" + filename);
+        String updates = IOUtils.toString(resourceAsStream);
+        File installers = new File(updatesDir, filename);
+
+        FileUtils.write(installers, updates);
+
     }
 
     @Test

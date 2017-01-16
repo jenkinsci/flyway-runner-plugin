@@ -1,9 +1,19 @@
 package sp.sd.flywayrunner.builder;
 
+import hudson.EnvVars;
+import hudson.FilePath;
+import hudson.model.Computer;
+import hudson.model.EnvironmentSpecific;
+import hudson.model.Node;
+import hudson.model.TaskListener;
+import hudson.slaves.NodeSpecific;
+import hudson.tools.ToolInstallation;
 import hudson.util.ArgumentListBuilder;
 
 import java.io.File;
 import java.io.IOException;
+
+import javax.annotation.Nullable;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
@@ -48,5 +58,23 @@ public class Util {
         if (!Strings.isNullOrEmpty(value)) {
             cmdExecArgs.add(OPTION_HYPHENS + cliOption.getCliOption() + "=" + value);
         }
+    }
+
+    public static <T extends ToolInstallation & EnvironmentSpecific<T> & NodeSpecific<T>> T getInstallation(
+            @Nullable T tool, EnvVars env, TaskListener listener, FilePath workspace)
+            throws IOException,
+            InterruptedException {
+        Computer computer = workspace.toComputer();
+        if (computer == null) {
+            return null;
+        }
+        Node node = computer.getNode();
+        if (tool == null || node == null) {
+            return null;
+        }
+        T t = tool.forNode(node, listener);
+        t = t.forEnvironment(env);
+
+        return t;
     }
 }
