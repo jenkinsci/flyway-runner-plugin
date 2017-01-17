@@ -13,12 +13,14 @@ import hudson.model.TaskListener;
 import hudson.slaves.NodeSpecific;
 import hudson.tools.ToolDescriptor;
 import hudson.tools.ToolInstallation;
+import hudson.tools.ToolInstaller;
 import hudson.tools.ToolProperty;
 import jenkins.security.MasterToSlaveCallable;
 import sp.sd.flywayrunner.builder.FlywayBuilder;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -97,6 +99,11 @@ public class FlywayInstallation extends ToolInstallation implements NodeSpecific
         public void setInstallations(FlywayInstallation... installations) {
             Hudson.getInstance().getDescriptorByType(FlywayBuilder.StepDescriptor.class)
                   .setInstallations(installations);
+        }
+
+        @Override
+        public List<? extends ToolInstaller> getDefaultInstallers() {
+            return Collections.singletonList(new FlywayInstaller(null));
         }
     }
     private static String launderHome(String home) {
