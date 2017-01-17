@@ -7,24 +7,21 @@ import hudson.Functions;
 import hudson.Launcher;
 import hudson.Util;
 import hudson.model.EnvironmentSpecific;
+import hudson.model.Hudson;
 import hudson.model.Node;
 import hudson.model.TaskListener;
 import hudson.slaves.NodeSpecific;
 import hudson.tools.ToolDescriptor;
 import hudson.tools.ToolInstallation;
-import hudson.tools.ToolInstaller;
 import hudson.tools.ToolProperty;
 import jenkins.security.MasterToSlaveCallable;
 import sp.sd.flywayrunner.builder.FlywayBuilder;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 
 import org.kohsuke.stapler.DataBoundConstructor;
-
-import com.google.inject.Inject;
 
 
 public class FlywayInstallation extends ToolInstallation implements NodeSpecific<FlywayInstallation>,
@@ -35,7 +32,7 @@ public class FlywayInstallation extends ToolInstallation implements NodeSpecific
     @DataBoundConstructor
     public FlywayInstallation(String name, String home, List<? extends ToolProperty<?>> properties) {
         super(name, launderHome(home), properties);
-        this.flywayHome = home;
+        flywayHome = home;
     }
 
     public FlywayInstallation forEnvironment(EnvVars environment) {
@@ -70,16 +67,20 @@ public class FlywayInstallation extends ToolInstallation implements NodeSpecific
     }
 
     public File getExecutableFile() {
-        String execName = Functions.isWindows() ? "flyway.cmd" : "flyway";
-        String resolvedFlywayHome = Util.replaceMacro(flywayHome, EnvVars.masterEnvVars);
-        return new File(resolvedFlywayHome, execName);
+        File file = new File(flywayHome);
+        File executable;
+        if (file.isFile()) {
+            executable = file;
+        } else {
+            String execName = Functions.isWindows() ? "flyway.cmd" : "flyway";
+            String resolvedFlywayHome = Util.replaceMacro(flywayHome, EnvVars.masterEnvVars);
+            executable = new File(resolvedFlywayHome, execName);
+        }
+        return executable;
     }
 
     @Extension
     public static class DescriptorImpl extends ToolDescriptor<FlywayInstallation> {
-        @Inject
-        private FlywayBuilder.StepDescriptor flywayDescriptor;
-
         @Override
         public String getDisplayName() {
             return "Flyway";
@@ -88,22 +89,16 @@ public class FlywayInstallation extends ToolInstallation implements NodeSpecific
         @Override
         @SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
         public FlywayInstallation[] getInstallations() {
-            return flywayDescriptor.getInstallations();
-        }
-
-        @Override
-        public List<? extends ToolInstaller> getDefaultInstallers() {
-            return Collections.singletonList(new FlywayInstaller(null));
+            return Hudson.getInstance().getDescriptorByType(FlywayBuilder.StepDescriptor.class).getInstallations();
         }
 
         @Override
         @SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
         public void setInstallations(FlywayInstallation... installations) {
-            flywayDescriptor.setInstallations(installations);
-
+            Hudson.getInstance().getDescriptorByType(FlywayBuilder.StepDescriptor.class)
+                  .setInstallations(installations);
         }
     }
-
     private static String launderHome(String home) {
         if (home.endsWith("/") || home.endsWith("\\")) {
 
@@ -112,5 +107,4 @@ public class FlywayInstallation extends ToolInstallation implements NodeSpecific
             return home;
         }
     }
-
 }

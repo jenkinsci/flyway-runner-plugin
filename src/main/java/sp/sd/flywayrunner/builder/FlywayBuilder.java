@@ -8,6 +8,7 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.AbstractProject;
+import hudson.model.Descriptor;
 import hudson.model.Item;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -82,7 +83,7 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
     @CheckForNull
     String credentialsId;
 
-
+    @Extension
     public static final StepDescriptor DESCRIPTOR = new StepDescriptor();
 
     @DataBoundConstructor
@@ -107,7 +108,7 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
     public FlywayInstallation getInstallation() {
         FlywayInstallation found = null;
         if (installationName != null) {
-            for (FlywayInstallation i : getDescriptor().getInstallations()) {
+            for (FlywayInstallation i : DESCRIPTOR.installations) {
                 if (installationName.equals(i.getName())) {
                     found = i;
                     break;
@@ -118,8 +119,8 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
     }
 
     @Override
-    public StepDescriptor<StandardCredentials> getDescriptor() {
-        return (StepDescriptor) super.getDescriptor();
+    public Descriptor<Builder> getDescriptor() {
+        return DESCRIPTOR;
     }
 
     @Override
@@ -271,7 +272,7 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
         return Password;
     }
 
-    @Extension
+
     public static final class StepDescriptor<C extends StandardCredentials> extends BuildStepDescriptor<Builder> {
         @CopyOnWrite
         private volatile FlywayInstallation[] installations = new FlywayInstallation[0];
