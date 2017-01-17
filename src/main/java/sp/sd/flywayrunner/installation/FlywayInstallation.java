@@ -26,6 +26,10 @@ import java.util.List;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 
+/**
+ * Flyway installation.  The "flywayHome" may either be the full path to the executable, or the directory in which
+ * the executable resides.  This dual meaning allows backwards compatibility with previous versions of the plugin.
+ */
 public class FlywayInstallation extends ToolInstallation implements NodeSpecific<FlywayInstallation>,
         EnvironmentSpecific<FlywayInstallation> {
     private static final long serialVersionUID = 1;
