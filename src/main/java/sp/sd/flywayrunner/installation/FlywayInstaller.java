@@ -65,7 +65,9 @@ public class FlywayInstaller extends DownloadFromUrlInstaller {
                 String filename = url.substring(databaseDriverUrl.lastIndexOf("/") + 1);
                 FilePath child = installationRoot.child("drivers/" + filename);
 
+
                 if (!child.exists()) {
+                    log.getLogger().println("Downloading " + databaseDriverUrl + " to " + child + " on " + node.getDisplayName());
                     URL downloadUrl = new URL(databaseDriverUrl);
                     child.copyFrom(downloadUrl);
                 }
