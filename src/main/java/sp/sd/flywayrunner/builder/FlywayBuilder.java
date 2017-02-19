@@ -168,7 +168,7 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
                     cliCommand.addTokenized(build.getEnvironment(listener).expand(commandLineArgs));
                 }
 
-                cliCommand.addTokenized(flywayCommand);
+                cliCommand.addTokenized(build.getEnvironment(listener).expand(flywayCommand));
             } else {
                 listener.fatalError("Flyway installation was not found.");
                 return null;
