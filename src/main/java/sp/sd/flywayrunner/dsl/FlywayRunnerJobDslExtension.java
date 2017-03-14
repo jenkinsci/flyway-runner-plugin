@@ -31,7 +31,7 @@ public class FlywayRunnerJobDslExtension extends ContextExtensionPoint {
     public Object flywayRunner(Runnable closure) {
         FlywayRunnerJobDslContext context = new FlywayRunnerJobDslContext();
         executeInContext(closure, context);
-        return new FlywayBuilder(context.installationName, context.flywayCommand, null, null, context.url,
+        return new FlywayBuilder(context.installationName, context.flywayCommand, context.url,
                 context.locations, context.commandLineArgs, context.credentialsId);
     }
 }

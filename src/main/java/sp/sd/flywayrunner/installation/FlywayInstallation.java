@@ -16,6 +16,7 @@ import hudson.tools.ToolInstallation;
 import hudson.tools.ToolInstaller;
 import hudson.tools.ToolProperty;
 import jenkins.security.MasterToSlaveCallable;
+import org.jenkinsci.Symbol;
 import sp.sd.flywayrunner.builder.FlywayBuilder;
 
 import java.io.File;
@@ -86,6 +87,7 @@ public class FlywayInstallation extends ToolInstallation implements NodeSpecific
     }
 
     @Extension
+    @Symbol("flyway")
     public static class DescriptorImpl extends ToolDescriptor<FlywayInstallation> {
         @Override
         public String getDisplayName() {
