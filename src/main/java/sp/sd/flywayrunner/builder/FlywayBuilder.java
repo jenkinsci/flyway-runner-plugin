@@ -20,6 +20,7 @@ import hudson.util.ArgumentListBuilder;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 import jenkins.tasks.SimpleBuildStep;
+import org.jenkinsci.Symbol;
 import sp.sd.flywayrunner.installation.FlywayInstallation;
 
 import java.io.IOException;
@@ -58,14 +59,6 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
      */
     private final String installationName;
     /**
-     * Username with which to connect to database.
-     */
-    private final String username;
-    /**
-     * Password with which to connect to database.
-     */
-    private final String password;
-    /**
      * JDBC database connection URL.
      */
     private final String url;
@@ -88,8 +81,6 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
 
     @DataBoundConstructor
     public FlywayBuilder(String installationName, String flywayCommand,
-                         String username,
-                         String password,
                          String url,
                          String locations,
                          String commandLineArgs,
@@ -97,8 +88,6 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
 
         this.flywayCommand = flywayCommand;
         this.installationName = installationName;
-        this.username = username;
-        this.password = Secret.fromString(password).getEncryptedValue();
         this.url = url;
         this.locations = locations;
         this.commandLineArgs = commandLineArgs;
@@ -154,10 +143,10 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
 
                 Util.addOptionIfPresent(cliCommand, CliOption.USERNAME,
                         getUsername(build.getEnvironment(listener), project));
-                if (password != null) {
-                    cliCommand.addMasked(Util.OPTION_HYPHENS + CliOption.PASSWORD.getCliOption() + "=" +
-                            getCredentialsPassword(build.getEnvironment(listener), project));
-                }
+
+                cliCommand.addMasked(Util.OPTION_HYPHENS + CliOption.PASSWORD.getCliOption() + "=" +
+                        getCredentialsPassword(build.getEnvironment(listener), project));
+
 
                 Util.addOptionIfPresent(cliCommand, CliOption.URL, build.getEnvironment(listener).expand(url));
 
@@ -197,14 +186,6 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
 
     public String getInstallationName() {
         return installationName;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public String getPassword() {
-        return Secret.decrypt(password).getPlainText();
     }
 
     public String getLocations() {
@@ -247,11 +228,6 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
 
     public String getUsername(EnvVars environment, Item project) {
         String Username = null;
-        if (Strings.isNullOrEmpty(username)) {
-            Username = "";
-        } else {
-            Username = environment.expand(username);
-        }
         if (!Strings.isNullOrEmpty(credentialsId)) {
             Username = this.getCredentials(project).getUsername();
         }
@@ -260,11 +236,6 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
 
     public String getCredentialsPassword(EnvVars environment, Item project) {
         String Password = null;
-        if (password == null) {
-            Password = "";
-        } else {
-            Password = environment.expand(password);
-        }
         if (!Strings.isNullOrEmpty(credentialsId)) {
             Password = Secret.toString(
                     StandardUsernamePasswordCredentials.class.cast(this.getCredentials(project)).getPassword());
@@ -273,6 +244,8 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
     }
 
 
+    @Extension
+    @Symbol("flywayrunner")
     public static final class StepDescriptor<C extends StandardCredentials> extends BuildStepDescriptor<Builder> {
         @CopyOnWrite
         private volatile FlywayInstallation[] installations = new FlywayInstallation[0];

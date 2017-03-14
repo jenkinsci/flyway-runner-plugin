@@ -94,8 +94,6 @@ public class FlywayBuilderIntegrationTest {
         FlywayBuilder builder = new FlywayBuilder(
                 "flyway",
                 "migrate",
-                "",
-                "",
                 jdbcUrl,
                 "filesystem:" + migrationFileDirectory.getAbsolutePath(),
                 "",
@@ -113,8 +111,6 @@ public class FlywayBuilderIntegrationTest {
         FlywayBuilder flywayBuilder = new FlywayBuilder(
                 "flyway",
                 "migrate",
-                "sa",
-                "",
                 "jdbc:h2:mem:test",
                 "filesystem:" + migrationDir.getAbsolutePath(),
                 "",
