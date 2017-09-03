@@ -3,6 +3,7 @@ package sp.sd.flywayrunner.builder;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
+import org.apache.commons.lang3.SystemUtils;
 import sp.sd.flywayrunner.installation.FlywayInstallation;
 
 import java.io.File;
@@ -130,7 +131,7 @@ public class FlywayBuilderIntegrationTest {
 
     private static void createFlywayJenkinsInstallation(String flywayHome) {
         FlywayInstallation flywayInstallation =
-                new FlywayInstallation("flyway", flywayHome + "/flyway", JenkinsRule.NO_PROPERTIES);
+                new FlywayInstallation("flyway", flywayHome + (SystemUtils.IS_OS_WINDOWS ? "/flyway.cmd" : "/flyway"), JenkinsRule.NO_PROPERTIES);
 
         jenkinsRule.getInstance().getDescriptorByType(FlywayInstallation.DescriptorImpl.class)
                    .setInstallations(flywayInstallation);
