@@ -244,7 +244,6 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
     }
 
 
-    @Extension
     @Symbol("flywayrunner")
     public static final class StepDescriptor<C extends StandardCredentials> extends BuildStepDescriptor<Builder> {
         @CopyOnWrite
