@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>2.6</version>
+        <version>4.16</version>
         <relativePath />
     </parent>
     <groupId>sp.sd</groupId>
@@ -14,9 +14,8 @@
     <packaging>hpi</packaging>
 
     <properties>
-        <jenkins.version>1.651.3</jenkins.version>
+        <jenkins.version>2.277.4</jenkins.version>
         <java.level>8</java.level>
-        <jenkins-test-harness.version>2.3</jenkins-test-harness.version>
         <flyway.install.version>4.0.3</flyway.install.version>
         <flyway.home>${project.build.directory}/flyway-${flyway.install.version}</flyway.home>
     </properties>
@@ -48,22 +47,33 @@
         <tag>HEAD</tag>
     </scm>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <!-- Pick up common dependencies for the selected LTS line: https://github.com/jenkinsci/bom#usage -->
+                <groupId>io.jenkins.tools.bom</groupId>
+                <artifactId>bom-2.277.x</artifactId>
+                <version>25</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>credentials</artifactId>
-            <version>2.1.0</version>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>job-dsl</artifactId>
-            <version>1.41</version>
+            <version>1.66</version>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>structs</artifactId>
-            <version>1.6</version>
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>
@@ -80,13 +90,12 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <version>1.4.178</version>
+            <version>1.4.191</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.main</groupId>
-            <artifactId>jenkins-test-harness-tools</artifactId>
-            <version>2.0</version>
+            <artifactId>jenkins-test-harness</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
