@@ -37,7 +37,7 @@ public class InstallerTest {
         HtmlElement addButton = configure.getFirstByXPath("//button[contains(., 'Add Flyway')]");
         addButton.click();
         List<HtmlElement> versionOptions =
-                (List<HtmlElement>) configure.getByXPath("//div[contains(@descriptorid, 'FlywayInstaller')]//option");
+                configure.getByXPath("//div[contains(@descriptorid, 'FlywayInstaller')]//option");
 
         assertThat(versionOptions, hasSize(20));
         assertThat(versionOptions, hasItem(isOptionWithVersionText("4.0.3 (without JRE)")));

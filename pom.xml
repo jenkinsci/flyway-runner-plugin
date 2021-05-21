@@ -15,7 +15,7 @@
 
     <properties>
         <jenkins.version>1.651.3</jenkins.version>
-        <java.level>7</java.level>
+        <java.level>8</java.level>
         <jenkins-test-harness.version>2.3</jenkins-test-harness.version>
         <flyway.install.version>4.0.3</flyway.install.version>
         <flyway.home>${project.build.directory}/flyway-${flyway.install.version}</flyway.home>
