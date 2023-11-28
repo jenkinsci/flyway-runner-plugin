@@ -24,3 +24,8 @@ libsrc/*
 /.project
 /.settings*
 /target/
+
+# Flyway generated
+*.json
+*.html
+

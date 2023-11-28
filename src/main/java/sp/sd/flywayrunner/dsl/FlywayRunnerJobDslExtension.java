@@ -1,11 +1,11 @@
 package sp.sd.flywayrunner.dsl;
 
 import hudson.Extension;
+import javaposse.jobdsl.dsl.RequiresPlugin;
 import javaposse.jobdsl.dsl.helpers.step.StepContext;
 import javaposse.jobdsl.plugin.ContextExtensionPoint;
 import javaposse.jobdsl.plugin.DslExtensionMethod;
 import sp.sd.flywayrunner.builder.FlywayBuilder;
-import javaposse.jobdsl.dsl.RequiresPlugin;
 
 /*
  ```
@@ -31,7 +31,12 @@ public class FlywayRunnerJobDslExtension extends ContextExtensionPoint {
     public Object flywayRunner(Runnable closure) {
         FlywayRunnerJobDslContext context = new FlywayRunnerJobDslContext();
         executeInContext(closure, context);
-        return new FlywayBuilder(context.installationName, context.flywayCommand, context.url,
-                context.locations, context.commandLineArgs, context.credentialsId);
+        return new FlywayBuilder(
+                context.installationName,
+                context.flywayCommand,
+                context.url,
+                context.locations,
+                context.commandLineArgs,
+                context.credentialsId);
     }
 }

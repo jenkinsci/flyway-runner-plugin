@@ -1,38 +1,5 @@
 package sp.sd.flywayrunner.builder;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import hudson.AbortException;
-import hudson.CopyOnWrite;
-import hudson.EnvVars;
-import hudson.Extension;
-import hudson.FilePath;
-import hudson.Launcher;
-import hudson.model.AbstractProject;
-import hudson.model.Descriptor;
-import hudson.model.Item;
-import hudson.model.Run;
-import hudson.model.TaskListener;
-import hudson.security.ACL;
-import hudson.tasks.BuildStepDescriptor;
-import hudson.tasks.Builder;
-import hudson.tools.ToolInstallation;
-import hudson.util.ArgumentListBuilder;
-import hudson.util.ListBoxModel;
-import hudson.util.Secret;
-import jenkins.tasks.SimpleBuildStep;
-import org.jenkinsci.Symbol;
-import sp.sd.flywayrunner.installation.FlywayInstallation;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.Collections;
-
-import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
-
-import org.kohsuke.stapler.AncestorInPath;
-import org.kohsuke.stapler.DataBoundConstructor;
-
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
@@ -41,14 +8,38 @@ import com.cloudbees.plugins.credentials.common.StandardUsernameListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import com.google.common.base.Strings;
-
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import hudson.AbortException;
+import hudson.EnvVars;
+import hudson.Extension;
+import hudson.FilePath;
+import hudson.Launcher;
+import hudson.model.AbstractProject;
+import hudson.model.Item;
+import hudson.model.PersistentDescriptor;
+import hudson.model.Run;
+import hudson.model.TaskListener;
+import hudson.security.ACL;
+import hudson.tasks.BuildStepDescriptor;
+import hudson.tasks.Builder;
+import hudson.util.ArgumentListBuilder;
+import hudson.util.ListBoxModel;
+import hudson.util.Secret;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.Collections;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
+import jenkins.tasks.SimpleBuildStep;
+import org.jenkinsci.Symbol;
+import org.kohsuke.stapler.AncestorInPath;
+import org.kohsuke.stapler.DataBoundConstructor;
+import sp.sd.flywayrunner.installation.FlywayInstallation;
 
 /**
  * Jenkins builder which runs flyway.
  */
 public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializable {
-
-    private static final String DEFAULT_LOGLEVEL = "info";
 
     /**
      * The Flyway action to execute.
@@ -72,19 +63,16 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
      */
     private final String locations;
 
-    private final
-    @CheckForNull
-    String credentialsId;
-
-    @Extension
-    public static final StepDescriptor DESCRIPTOR = new StepDescriptor();
+    private final @CheckForNull String credentialsId;
 
     @DataBoundConstructor
-    public FlywayBuilder(String installationName, String flywayCommand,
-                         String url,
-                         String locations,
-                         String commandLineArgs,
-                         String credentialsId) {
+    public FlywayBuilder(
+            String installationName,
+            String flywayCommand,
+            String url,
+            String locations,
+            String commandLineArgs,
+            String credentialsId) {
 
         this.flywayCommand = flywayCommand;
         this.installationName = installationName;
@@ -95,21 +83,15 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
     }
 
     public FlywayInstallation getInstallation() {
-        FlywayInstallation found = null;
-        if (installationName != null) {
-            for (FlywayInstallation i : DESCRIPTOR.installations) {
-                if (installationName.equals(i.getName())) {
-                    found = i;
-                    break;
-                }
-            }
+        for (FlywayInstallation i : getDescriptor().getInstallations()) {
+            if (installationName != null && installationName.equals(i.getName())) return i;
         }
-        return found;
+        return null;
     }
 
     @Override
-    public Descriptor<Builder> getDescriptor() {
-        return DESCRIPTOR;
+    public DescriptorImpl getDescriptor() {
+        return (DescriptorImpl) super.getDescriptor();
     }
 
     @Override
@@ -127,30 +109,32 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
     }
 
     @SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
-    private ArgumentListBuilder composeFlywayCommand(Run build,
-                                                     TaskListener listener,
-                                                     Launcher launcher,
-                                                     FilePath workspace) {
+    private ArgumentListBuilder composeFlywayCommand(
+            Run build, TaskListener listener, Launcher launcher, FilePath workspace) {
         ArgumentListBuilder cliCommand = new ArgumentListBuilder();
         Item project = build.getParent();
         try {
             FlywayInstallation installation = getInstallation();
             if (installation != null) {
 
-                FlywayInstallation buildTool =
-                        Util.getInstallation(installation, build.getEnvironment(listener), listener, workspace);
+                FlywayInstallation buildTool = sp.sd.flywayrunner.builder.Util.getInstallation(
+                        installation, build.getEnvironment(listener), listener, workspace);
                 cliCommand.add(buildTool.getExecutable(launcher));
 
-                Util.addOptionIfPresent(cliCommand, CliOption.USERNAME,
-                        getUsername(build.getEnvironment(listener), project));
+                sp.sd.flywayrunner.builder.Util.addOptionIfPresent(
+                        cliCommand, CliOption.USERNAME, getUsername(build.getEnvironment(listener), project));
 
-                cliCommand.addMasked(Util.OPTION_HYPHENS + CliOption.PASSWORD.getCliOption() + "=" +
-                        getCredentialsPassword(build.getEnvironment(listener), project));
+                cliCommand.addMasked(sp.sd.flywayrunner.builder.Util.OPTION_HYPHENS + CliOption.PASSWORD.getCliOption()
+                        + "=" + getCredentialsPassword(build.getEnvironment(listener), project));
 
+                sp.sd.flywayrunner.builder.Util.addOptionIfPresent(
+                        cliCommand,
+                        CliOption.URL,
+                        build.getEnvironment(listener).expand(url));
 
-                Util.addOptionIfPresent(cliCommand, CliOption.URL, build.getEnvironment(listener).expand(url));
-
-                Util.addOptionIfPresent(cliCommand, CliOption.LOCATIONS,
+                sp.sd.flywayrunner.builder.Util.addOptionIfPresent(
+                        cliCommand,
+                        CliOption.LOCATIONS,
                         build.getEnvironment(listener).expand(locations));
 
                 if (!Strings.isNullOrEmpty(commandLineArgs)) {
@@ -196,9 +180,7 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
         return url;
     }
 
-    public
-    @Nullable
-    String getCredentialsId() {
+    public @Nullable String getCredentialsId() {
         return credentialsId;
     }
 
@@ -219,11 +201,12 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
 
     public static StandardUsernameCredentials lookupSystemCredentials(String credentialsId, Item project) {
         return CredentialsMatchers.firstOrNull(
-                CredentialsProvider
-                        .lookupCredentials(StandardUsernameCredentials.class, project, ACL.SYSTEM,
-                                Collections.<DomainRequirement>emptyList()),
-                CredentialsMatchers.withId(credentialsId)
-        );
+                CredentialsProvider.lookupCredentials(
+                        StandardUsernameCredentials.class,
+                        project,
+                        ACL.SYSTEM,
+                        Collections.<DomainRequirement>emptyList()),
+                CredentialsMatchers.withId(credentialsId));
     }
 
     public String getUsername(EnvVars environment, Item project) {
@@ -237,38 +220,26 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
     public String getCredentialsPassword(EnvVars environment, Item project) {
         String Password = null;
         if (!Strings.isNullOrEmpty(credentialsId)) {
-            Password = Secret.toString(
-                    StandardUsernamePasswordCredentials.class.cast(this.getCredentials(project)).getPassword());
+            Password = Secret.toString(StandardUsernamePasswordCredentials.class
+                    .cast(this.getCredentials(project))
+                    .getPassword());
         }
         return Password;
     }
 
-
     @Extension
     @Symbol("flywayrunner")
-    public static final class StepDescriptor<C extends StandardCredentials> extends BuildStepDescriptor<Builder> {
-        @CopyOnWrite
-        private volatile FlywayInstallation[] installations = new FlywayInstallation[0];
+    public static final class DescriptorImpl<C extends StandardCredentials> extends BuildStepDescriptor<Builder>
+            implements PersistentDescriptor {
 
-        public StepDescriptor() {
+        public DescriptorImpl() {
             super(FlywayBuilder.class);
             load();
         }
 
-        @SuppressFBWarnings(value = "EI_EXPOSE_REP")
         public FlywayInstallation[] getInstallations() {
-            return installations;
+            return FlywayInstallation.allInstallations();
         }
-
-        public void setInstallations(FlywayInstallation... installations) {
-            this.installations = installations;
-            save();
-        }
-
-        public FlywayInstallation.DescriptorImpl getToolDescriptor() {
-            return ToolInstallation.all().get(FlywayInstallation.DescriptorImpl.class);
-        }
-
 
         @Override
         public boolean isApplicable(Class<? extends AbstractProject> jobType) {
@@ -284,11 +255,17 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
             if (owner == null || !owner.hasPermission(Item.CONFIGURE)) {
                 return new ListBoxModel();
             }
-            return new StandardUsernameListBoxModel().withEmptySelection().withAll(CredentialsProvider
-                    .lookupCredentials(StandardUsernamePasswordCredentials.class, owner, ACL.SYSTEM,
-                            Collections.<DomainRequirement>emptyList()));
+            return new StandardUsernameListBoxModel()
+                    .includeEmptyValue()
+                    .includeAs(ACL.SYSTEM2, owner, StandardUsernamePasswordCredentials.class);
         }
 
+        public ListBoxModel doFillInstallationItems() {
+            ListBoxModel model = new ListBoxModel();
+            for (FlywayInstallation tool : FlywayInstallation.allInstallations()) {
+                model.add(tool.getName());
+            }
+            return model;
+        }
     }
-
 }

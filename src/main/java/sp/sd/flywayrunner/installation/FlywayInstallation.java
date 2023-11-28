@@ -7,33 +7,30 @@ import hudson.Functions;
 import hudson.Launcher;
 import hudson.Util;
 import hudson.model.EnvironmentSpecific;
-import hudson.model.Hudson;
 import hudson.model.Node;
+import hudson.model.PersistentDescriptor;
 import hudson.model.TaskListener;
 import hudson.slaves.NodeSpecific;
 import hudson.tools.ToolDescriptor;
 import hudson.tools.ToolInstallation;
-import hudson.tools.ToolInstaller;
 import hudson.tools.ToolProperty;
-import jenkins.security.MasterToSlaveCallable;
-import org.jenkinsci.Symbol;
-import sp.sd.flywayrunner.builder.FlywayBuilder;
-
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
-
+import jenkins.model.Jenkins;
+import jenkins.security.MasterToSlaveCallable;
+import net.sf.json.JSONObject;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
-
+import org.kohsuke.stapler.StaplerRequest;
 
 /**
  * Flyway installation.  The "flywayHome" may either be the full path to the executable, or the directory in which
  * the executable resides.  This dual meaning allows backwards compatibility with previous versions of the plugin.
  */
-public class FlywayInstallation extends ToolInstallation implements NodeSpecific<FlywayInstallation>,
-        EnvironmentSpecific<FlywayInstallation> {
-    private static final long serialVersionUID = 1;
+public class FlywayInstallation extends ToolInstallation
+        implements NodeSpecific<FlywayInstallation>, EnvironmentSpecific<FlywayInstallation> {
+    private static final long serialVersionUID = 2;
     private String flywayHome;
 
     @DataBoundConstructor
@@ -43,24 +40,33 @@ public class FlywayInstallation extends ToolInstallation implements NodeSpecific
     }
 
     public FlywayInstallation forEnvironment(EnvVars environment) {
-        return new FlywayInstallation(getName(), environment.expand(flywayHome), getProperties().toList());
+        return new FlywayInstallation(
+                getName(), environment.expand(flywayHome), getProperties().toList());
     }
 
     public FlywayInstallation forNode(Node node, TaskListener log) throws IOException, InterruptedException {
-        return new FlywayInstallation(getName(), translateFor(node, log), getProperties().toList());
+        return new FlywayInstallation(
+                getName(), translateFor(node, log), getProperties().toList());
+    }
+
+    public static FlywayInstallation[] allInstallations() {
+        FlywayInstallation.DescriptorImpl ansibleDescriptor =
+                Jenkins.get().getDescriptorByType(FlywayInstallation.DescriptorImpl.class);
+        return ansibleDescriptor.getInstallations();
     }
 
     @Override
     public String getHome() {
         String resolvedHome;
         if (flywayHome != null) {
-            resolvedHome= flywayHome;
+            resolvedHome = flywayHome;
         } else {
-            resolvedHome=super.getHome();
+            resolvedHome = super.getHome();
         }
         return resolvedHome;
     }
 
+    @SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     public String getExecutable(Launcher launcher) throws IOException, InterruptedException {
         return launcher.getChannel().call(new MasterToSlaveCallable<String, IOException>() {
             public String call() throws IOException {
@@ -88,30 +94,20 @@ public class FlywayInstallation extends ToolInstallation implements NodeSpecific
 
     @Extension
     @Symbol("flyway")
-    public static class DescriptorImpl extends ToolDescriptor<FlywayInstallation> {
+    public static class DescriptorImpl extends ToolDescriptor<FlywayInstallation> implements PersistentDescriptor {
         @Override
         public String getDisplayName() {
             return "Flyway";
         }
 
         @Override
-        @SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
-        public FlywayInstallation[] getInstallations() {
-            return Hudson.getInstance().getDescriptorByType(FlywayBuilder.StepDescriptor.class).getInstallations();
-        }
-
-        @Override
-        @SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
-        public void setInstallations(FlywayInstallation... installations) {
-            Hudson.getInstance().getDescriptorByType(FlywayBuilder.StepDescriptor.class)
-                  .setInstallations(installations);
-        }
-
-        @Override
-        public List<? extends ToolInstaller> getDefaultInstallers() {
-            return Collections.singletonList(new FlywayInstaller(null));
+        public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
+            super.configure(req, json);
+            save();
+            return true;
         }
     }
+
     private static String launderHome(String home) {
         if (home.endsWith("/") || home.endsWith("\\")) {
 

@@ -1,14 +1,19 @@
-Jenkins Flyway Plugin
-=====================
+# Jenkins Flyway Plugin
+
+[![Build Status](https://ci.jenkins.io/job/Plugins/job/flyway-runner-plugin/job/master/badge/icon)](https://ci.jenkins.io/job/Plugins/job/flyway-runner-plugin/job/master/)
+[![Jenkins Plugin](https://img.shields.io/jenkins/plugin/v/flyway-runner.svg)](https://plugins.jenkins.io/flyway-runner)
+[![GitHub release](https://img.shields.io/github/release/jenkinsci/flyway-runner-plugin.svg?label=changelog)](https://github.com/jenkinsci/flyway-runner-plugin/releases/latest)
+[![GitHub license](https://img.shields.io/github/license/jenkinsci/flyway-runner-plugin)](https://github.com/jenkinsci/flyway-runner-plugin/blob/master/LICENSE.md)
+
 Adds Flyway as an available build step. See Flyway documentation at https://flywaydb.org/documentation/.
 
-Installation
----
+## Installation
+
     Install the flyway-runner plugin.
     Install flyway on the server where your job will run, including any database driver.
 
-Configuration
----
+## Configuration
+
     Add your Flyway installation in Manage Jenkins -> Configure System.   
     Note that the jar file containing your database driver should be located in FLYWAY_HOME/lib.
     Alternatively you may have Jenkins install flyway automatically from Maven central.

@@ -2,13 +2,16 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:c="/lib/credentials">
 
-    <f:entry title="${%InstallationName}">
-        <select class="setting-input" name="FlywayBuilder.installationName">
-            <j:forEach var="inst" items="${descriptor.installations}">
-                <f:option selected="${inst.name==instance.installationName}">${inst.name}</f:option>
+    <j:set var="installations" value="${descriptor.getInstallations()}"/>
+    <j:if test="${not empty(installations)}">
+        <f:entry title="${%Flyway installation}">
+        <select class="setting-input" name="installationName">
+            <j:forEach var="inst" items="${installations}">
+            <f:option value="${inst.name}" selected="${inst.name==instance.installationName}">${inst.name}</f:option>
             </j:forEach>
         </select>
-    </f:entry>
+        </f:entry>
+    </j:if>
 
     <f:entry title="Command" field="flywayCommand"
             description="Command to run, i.e. 'migrate', 'info', 'validate', etc.">
