@@ -6,6 +6,9 @@ updates:
   directory: /
   schedule:
     interval: monthly
+    ignore:
+  - dependency-name: "org.flywaydb:flyway-core"
+  - dependency-name: "org.flywaydb:flyway-commandline"
 - package-ecosystem: github-actions
   directory: /
   schedule:
