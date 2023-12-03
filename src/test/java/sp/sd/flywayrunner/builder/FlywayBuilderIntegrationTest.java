@@ -1,38 +1,44 @@
 package sp.sd.flywayrunner.builder;
 
-import hudson.model.FreeStyleBuild;
-import hudson.model.FreeStyleProject;
-import hudson.model.Result;
-import org.apache.commons.lang3.SystemUtils;
-import sp.sd.flywayrunner.installation.FlywayInstallation;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.concurrent.ExecutionException;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.h2.jdbcx.JdbcDataSource;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.jvnet.hudson.test.JenkinsRule;
+import static org.hamcrest.CoreMatchers.allOf;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.StringContains.containsString;
 
 import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.domains.Domain;
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.core.StringContains.containsString;
-import static org.junit.Assert.assertThat;
+import hudson.model.FreeStyleBuild;
+import hudson.model.FreeStyleProject;
+import hudson.model.Label;
+import hudson.model.Result;
+import hudson.slaves.DumbSlave;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.concurrent.ExecutionException;
+import java.util.logging.Logger;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.SystemUtils;
+import org.h2.jdbcx.JdbcDataSource;
+import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
+import org.jenkinsci.plugins.workflow.job.WorkflowJob;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.jvnet.hudson.test.JenkinsRule;
+import sp.sd.flywayrunner.installation.FlywayInstallation;
 
 public class FlywayBuilderIntegrationTest {
     private static final String SIMPLE_MIGRATION = "/migrations/V1_2__Simple.sql";
@@ -44,8 +50,16 @@ public class FlywayBuilderIntegrationTest {
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
+    private static DumbSlave agent;
+
+    private static final Logger LOGGER = Logger.getLogger(FlywayBuilderIntegrationTest.class.getName());
     protected File migrationFileDirectory;
     protected FreeStyleProject project;
+
+    @BeforeClass
+    public static void startAgent() throws Exception {
+        agent = jenkinsRule.createSlave(Label.get("test-agent"));
+    }
 
     @Before
     public void setup() throws IOException {
@@ -61,29 +75,42 @@ public class FlywayBuilderIntegrationTest {
     }
 
     @Test
-    public void should_run_flyway_migration_successfully()
-            throws IOException, ExecutionException, InterruptedException {
+    public void shouldRunFreestyleJob() throws IOException, ExecutionException, InterruptedException {
         supplyMigrationFromResource(SIMPLE_MIGRATION);
         FreeStyleBuild build = project.scheduleBuild2(0).get();
 
         assertThat(build.getResult(), is(Result.SUCCESS));
-        String buildLog = FileUtils.readFileToString(build.getLogFile());
+
+        String buildLog = IOUtils.toString(build.getLogReader());
         assertThat(buildLog, containsString("Successfully applied 1 migration"));
     }
 
     @Test
-    public void should_fail_build_when_migration_has_error()
-            throws IOException, ExecutionException, InterruptedException {
+    public void shouldRunPipeline() throws Exception {
+        String pipeline = IOUtils.toString(
+                FlywayBuilderIntegrationTest.class.getResourceAsStream("/pipelines/pipeline.groovy"),
+                StandardCharsets.UTF_8);
+        WorkflowJob workflowJob = jenkinsRule.createProject(WorkflowJob.class);
+        workflowJob.setDefinition(new CpsFlowDefinition(pipeline, true));
+        WorkflowRun run1 = workflowJob.scheduleBuild2(0).waitForStart();
+        jenkinsRule.waitForCompletion(run1);
+        assertThat(
+                run1.getLog(),
+                allOf(containsString("Successfully applied 1 migration to schema \"PUBLIC\", now at version v1 ")));
+    }
+
+    @Test
+    public void shouldFailWhenMigrationHasError() throws IOException, ExecutionException, InterruptedException {
         supplyMigrationFromResource(MIGRATION_WITH_ERROR);
         FreeStyleBuild build = project.scheduleBuild2(0).get();
 
         assertThat(build.getResult(), is(Result.FAILURE));
-        String buildLog = FileUtils.readFileToString(build.getLogFile());
+        String buildLog = IOUtils.toString(build.getLogReader());
         assertThat(buildLog, containsString("Syntax error"));
     }
 
     @Test
-    public void should_use_credentials_for_db_access() throws IOException, ExecutionException, InterruptedException {
+    public void shouldUseCredentialsForDbAccess() throws IOException, ExecutionException, InterruptedException {
 
         String username = RandomStringUtils.randomAlphabetic(5);
         String password = RandomStringUtils.randomAlphabetic(5);
@@ -100,22 +127,17 @@ public class FlywayBuilderIntegrationTest {
                 "",
                 credentialsId);
 
-
         freeStyleProject.getBuildersList().add(builder);
         FreeStyleBuild build = freeStyleProject.scheduleBuild2(0).get();
-
+        String buildLog = IOUtils.toString(build.getLogReader());
+        assertThat(buildLog, containsString("No migration necessary."));
         assertThat(build.getResult(), is(Result.SUCCESS));
     }
 
-    private static FreeStyleProject createFlywayJenkinsProject(File migrationDir) throws IOException {
+    private FreeStyleProject createFlywayJenkinsProject(File migrationDir) throws IOException {
         FreeStyleProject freeStyleProject = jenkinsRule.createFreeStyleProject();
         FlywayBuilder flywayBuilder = new FlywayBuilder(
-                "flyway",
-                "migrate",
-                "jdbc:h2:mem:test",
-                "filesystem:" + migrationDir.getAbsolutePath(),
-                "",
-                "");
+                "flyway", "migrate", "jdbc:h2:mem:test", "filesystem:" + migrationDir.getAbsolutePath(), "", "");
 
         freeStyleProject.getBuildersList().add(flywayBuilder);
         return freeStyleProject;
@@ -123,18 +145,22 @@ public class FlywayBuilderIntegrationTest {
 
     private void supplyMigrationFromResource(String resourcePath) throws IOException {
         InputStream resourceAsStream = getClass().getResourceAsStream(resourcePath);
-        String migrationSql = IOUtils.toString(resourceAsStream);
+        String migrationSql = IOUtils.toString(resourceAsStream, StandardCharsets.UTF_8);
         String fileName = resourcePath.substring(resourcePath.lastIndexOf("/") + 1);
         File migrationFile = new File(migrationFileDirectory, fileName);
-        FileUtils.write(migrationFile, migrationSql);
+        FileUtils.write(migrationFile, migrationSql, StandardCharsets.UTF_8);
     }
 
-    private static void createFlywayJenkinsInstallation(String flywayHome) {
-        FlywayInstallation flywayInstallation =
-                new FlywayInstallation("flyway", flywayHome + (SystemUtils.IS_OS_WINDOWS ? "/flyway.cmd" : "/flyway"), JenkinsRule.NO_PROPERTIES);
+    private void createFlywayJenkinsInstallation(String flywayHome) {
+        FlywayInstallation flywayInstallation = new FlywayInstallation(
+                "flyway",
+                flywayHome + (SystemUtils.IS_OS_WINDOWS ? "/flyway.cmd" : "/flyway"),
+                JenkinsRule.NO_PROPERTIES);
 
-        jenkinsRule.getInstance().getDescriptorByType(FlywayInstallation.DescriptorImpl.class)
-                   .setInstallations(flywayInstallation);
+        jenkinsRule
+                .getInstance()
+                .getDescriptorByType(FlywayInstallation.DescriptorImpl.class)
+                .setInstallations(flywayInstallation);
     }
 
     private String createDatabase(String username, String password) throws IOException {
@@ -163,14 +189,15 @@ public class FlywayBuilderIntegrationTest {
         return jdbcUrl;
     }
 
-    private static String createJenkinsCredentials(String username, String password) throws IOException {
+    private String createJenkinsCredentials(String username, String password) throws IOException {
         String credentialsId = RandomStringUtils.randomAlphabetic(10);
-        Credentials credentials =
-                new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, credentialsId, "sample", username,
-                        password);
+        Credentials credentials = new UsernamePasswordCredentialsImpl(
+                CredentialsScope.GLOBAL, credentialsId, "sample", username, password);
 
-        CredentialsProvider.lookupStores(jenkinsRule.getInstance()).iterator().next()
-                           .addCredentials(Domain.global(), credentials);
+        CredentialsProvider.lookupStores(jenkinsRule.getInstance())
+                .iterator()
+                .next()
+                .addCredentials(Domain.global(), credentials);
         return credentialsId;
     }
 }

@@ -1,20 +1,17 @@
 package sp.sd.flywayrunner.installation;
 
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.Node;
 import hudson.model.TaskListener;
 import hudson.tools.DownloadFromUrlInstaller;
 import hudson.tools.ToolInstallation;
-
 import java.io.IOException;
 import java.net.URL;
 import java.util.logging.Logger;
-
 import org.kohsuke.stapler.DataBoundConstructor;
-
-import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
 
 public class FlywayInstaller extends DownloadFromUrlInstaller {
     private static final Logger LOG = Logger.getLogger(FlywayInstaller.class.getName());
@@ -65,7 +62,9 @@ public class FlywayInstaller extends DownloadFromUrlInstaller {
                 String filename = url.substring(databaseDriverUrl.lastIndexOf("/") + 1);
                 FilePath child = installationRoot.child("drivers/" + filename);
                 if (!child.exists()) {
-                    log.getLogger().println("Downloading " + databaseDriverUrl + " to " + child + " on " + node.getDisplayName());
+                    log.getLogger()
+                            .println("Downloading " + databaseDriverUrl + " to " + child + " on "
+                                    + node.getDisplayName());
                     URL downloadUrl = new URL(databaseDriverUrl);
                     child.copyFrom(downloadUrl);
                 }
