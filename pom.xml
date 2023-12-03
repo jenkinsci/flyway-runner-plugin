@@ -45,7 +45,7 @@
     <changelist>-SNAPSHOT</changelist>
     <gitHubRepo>jenkinsci/flyway-runner-plugin</gitHubRepo>
     <jenkins.version>2.414.3</jenkins.version>
-    <flyway.install.version>9.22.3</flyway.install.version>
+    <flyway.install.version>10.1.0</flyway.install.version>
     <flyway.api.version>${flyway.install.version}-7.v4dde6eec2e8c</flyway.api.version>
     <flyway.home>${project.build.directory}/flyway-${flyway.install.version}</flyway.home>
     <spotless.check.skip>false</spotless.check.skip>
