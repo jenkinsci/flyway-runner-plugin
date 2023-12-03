@@ -10,7 +10,7 @@
   </parent>
   <groupId>sp.sd</groupId>
   <artifactId>flyway-runner</artifactId>
-  <version>${revision}${changelist}</version>
+  <version>${changelist}</version>
   <packaging>hpi</packaging>
 
   <name>Flyway Runner</name>
@@ -41,8 +41,7 @@
   </scm>
 
   <properties>
-    <revision>1.10</revision>
-    <changelist>-SNAPSHOT</changelist>
+    <changelist>999999-SNAPSHOT</changelist>
     <gitHubRepo>jenkinsci/flyway-runner-plugin</gitHubRepo>
     <jenkins.version>2.414.3</jenkins.version>
     <flyway.install.version>9.22.3</flyway.install.version>
