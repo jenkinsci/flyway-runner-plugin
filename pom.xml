@@ -47,6 +47,7 @@
     <flyway.install.version>9.22.3</flyway.install.version>
     <flyway.api.version>${flyway.install.version}-15.v9f1b_9f0db_567</flyway.api.version>
     <flyway.home>${project.build.directory}/flyway-${flyway.install.version}</flyway.home>
+    <configuration-as-code.version>1714.v09593e830cfa</configuration-as-code.version>
     <spotless.check.skip>false</spotless.check.skip>
   </properties>
 
@@ -95,7 +96,18 @@
       <version>2.2.224</version>
       <scope>test</scope>
     </dependency>
-
+    <dependency>
+      <groupId>io.jenkins</groupId>
+      <artifactId>configuration-as-code</artifactId>
+      <version>${configuration-as-code.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.jenkins.configuration-as-code</groupId>
+      <artifactId>test-harness</artifactId>
+      <version>${configuration-as-code.version}</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.flywaydb</groupId>
       <artifactId>flyway-commandline</artifactId>
