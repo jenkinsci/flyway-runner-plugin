@@ -68,18 +68,10 @@ public class FlywayInstallation extends ToolInstallation
 
     @SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     public String getExecutable(Launcher launcher) throws IOException, InterruptedException {
-        return launcher.getChannel().call(new MasterToSlaveCallable<String, IOException>() {
-            public String call() throws IOException {
-                File exe = getExecutableFile();
-                if (exe.exists()) {
-                    return exe.getPath();
-                }
-                return null;
-            }
-        });
+        return launcher.getChannel().call(new GetExecutable(getHome()));
     }
 
-    public File getExecutableFile() {
+    private static File getExecutableFile(String flywayHome) {
         File file = new File(flywayHome);
         File executable;
         if (file.isFile()) {
@@ -90,6 +82,23 @@ public class FlywayInstallation extends ToolInstallation
             executable = new File(resolvedFlywayHome, execName);
         }
         return executable;
+    }
+
+    private static class GetExecutable extends MasterToSlaveCallable<String, IOException> {
+        private final String flywayHome;
+
+        GetExecutable(String flywayHome) {
+            this.flywayHome = flywayHome;
+        }
+
+        @Override
+        public String call() throws IOException {
+            File exe = getExecutableFile(flywayHome);
+            if (exe.exists()) {
+                return exe.getPath();
+            }
+            return null;
+        }
     }
 
     @Extension
