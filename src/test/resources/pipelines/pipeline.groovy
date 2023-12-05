@@ -16,7 +16,7 @@ pipeline {
                     installationName: 'flyway',
                     locations: "filesystem:${env.WORKSPACE}/migrations",
                     url: 'jdbc:h2:mem:test',
-                    credentialsId: '',
+                    credentialsId: 'pipeline-credentials',
                     commandLineArgs: '',
                 )
             }

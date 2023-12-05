@@ -90,13 +90,16 @@ public class FlywayBuilderIntegrationTest {
         String pipeline = IOUtils.toString(
                 FlywayBuilderIntegrationTest.class.getResourceAsStream("/pipelines/pipeline.groovy"),
                 StandardCharsets.UTF_8);
+        createJenkinsPipelineCredentials();
         WorkflowJob workflowJob = jenkinsRule.createProject(WorkflowJob.class);
         workflowJob.setDefinition(new CpsFlowDefinition(pipeline, true));
         WorkflowRun run1 = workflowJob.scheduleBuild2(0).waitForStart();
         jenkinsRule.waitForCompletion(run1);
         assertThat(
                 run1.getLog(),
-                allOf(containsString("Successfully applied 1 migration to schema \"PUBLIC\", now at version v1 ")));
+                allOf(
+                        containsString("Successfully applied 1 migration to schema \"PUBLIC\", now at version v1 "),
+                        containsString("flyway -user=foo ******** -url=jdbc:h2:mem:test")));
     }
 
     @Test
@@ -199,5 +202,14 @@ public class FlywayBuilderIntegrationTest {
                 .next()
                 .addCredentials(Domain.global(), credentials);
         return credentialsId;
+    }
+
+    private void createJenkinsPipelineCredentials() throws IOException {
+        Credentials credentials = new UsernamePasswordCredentialsImpl(
+                CredentialsScope.GLOBAL, "pipeline-credentials", "sample", "foo", "bar");
+        CredentialsProvider.lookupStores(jenkinsRule.getInstance())
+                .iterator()
+                .next()
+                .addCredentials(Domain.global(), credentials);
     }
 }

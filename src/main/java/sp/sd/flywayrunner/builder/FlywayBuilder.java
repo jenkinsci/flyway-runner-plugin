@@ -10,7 +10,6 @@ import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import com.google.common.base.Strings;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.AbortException;
-import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -95,13 +94,13 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
     }
 
     @Override
-    public void perform(Run build, FilePath workspace, Launcher launcher, TaskListener listener)
+    public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener)
             throws InterruptedException, IOException {
         boolean result = false;
         ArgumentListBuilder cliCommand = composeFlywayCommand(build, listener, launcher, workspace);
         if (cliCommand != null) {
             int exitStatus = launcher.launch().cmds(cliCommand).stdout(listener).join();
-            result = didErrorsOccur(build, exitStatus);
+            result = didErrorsOccur(exitStatus);
         }
         if (!result) {
             throw new AbortException("Build step 'Invoke Flyway' failed due to errors.");
@@ -110,7 +109,7 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
 
     @SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     private ArgumentListBuilder composeFlywayCommand(
-            Run build, TaskListener listener, Launcher launcher, FilePath workspace) {
+            Run<?, ?> build, TaskListener listener, Launcher launcher, FilePath workspace) {
         ArgumentListBuilder cliCommand = new ArgumentListBuilder();
         Item project = build.getParent();
         try {
@@ -122,10 +121,10 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
                 cliCommand.add(buildTool.getExecutable(launcher));
 
                 sp.sd.flywayrunner.builder.Util.addOptionIfPresent(
-                        cliCommand, CliOption.USERNAME, getUsername(build.getEnvironment(listener), project));
+                        cliCommand, CliOption.USERNAME, getUsername(project));
 
                 cliCommand.addMasked(sp.sd.flywayrunner.builder.Util.OPTION_HYPHENS + CliOption.PASSWORD.getCliOption()
-                        + "=" + getCredentialsPassword(build.getEnvironment(listener), project));
+                        + "=" + getCredentialsPassword(project));
 
                 sp.sd.flywayrunner.builder.Util.addOptionIfPresent(
                         cliCommand,
@@ -152,7 +151,7 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
         return cliCommand;
     }
 
-    private boolean didErrorsOccur(Run build, int exitStatus) throws IOException {
+    private boolean didErrorsOccur(int exitStatus) {
         boolean result = true;
         if (exitStatus != 0) {
             result = false;
@@ -188,7 +187,7 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
         StandardUsernameCredentials credentials = null;
         try {
 
-            credentials = credentialsId == null ? null : this.lookupSystemCredentials(credentialsId, project);
+            credentials = credentialsId == null ? null : lookupSystemCredentials(credentialsId, project);
             if (credentials != null) {
                 return credentials;
             }
@@ -199,32 +198,32 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
         return credentials;
     }
 
-    public static StandardUsernameCredentials lookupSystemCredentials(String credentialsId, Item project) {
+    public StandardUsernameCredentials lookupSystemCredentials(String credentialsId, Item project) {
         return CredentialsMatchers.firstOrNull(
-                CredentialsProvider.lookupCredentials(
+                CredentialsProvider.lookupCredentialsInItem(
                         StandardUsernameCredentials.class,
                         project,
-                        ACL.SYSTEM,
+                        ACL.SYSTEM2,
                         Collections.<DomainRequirement>emptyList()),
                 CredentialsMatchers.withId(credentialsId));
     }
 
-    public String getUsername(EnvVars environment, Item project) {
-        String Username = null;
+    public String getUsername(Item project) {
+        String username = null;
         if (!Strings.isNullOrEmpty(credentialsId)) {
-            Username = this.getCredentials(project).getUsername();
+            username = this.getCredentials(project).getUsername();
         }
-        return Username;
+        return username;
     }
 
-    public String getCredentialsPassword(EnvVars environment, Item project) {
-        String Password = null;
+    public String getCredentialsPassword(Item project) {
+        String password = null;
         if (!Strings.isNullOrEmpty(credentialsId)) {
-            Password = Secret.toString(StandardUsernamePasswordCredentials.class
+            password = Secret.toString(StandardUsernamePasswordCredentials.class
                     .cast(this.getCredentials(project))
                     .getPassword());
         }
-        return Password;
+        return password;
     }
 
     @Extension
