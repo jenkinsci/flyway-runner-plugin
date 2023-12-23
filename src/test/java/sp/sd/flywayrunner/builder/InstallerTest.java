@@ -7,29 +7,26 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.htmlunit.html.HtmlElement;
 import org.htmlunit.html.HtmlPage;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.xml.sax.SAXException;
 
+@WithJenkins
 public class InstallerTest {
-
-    @Rule
-    public JenkinsRule jenkinsRule = new JenkinsRule();
 
     private static final String TOOL_UPDATES_FILENAME = "sp.sd.flywayrunner.installation.FlywayInstaller";
 
-    @SuppressWarnings("unchecked")
     @Test
-    public void shouldContainerFlywayInstaller() throws IOException, SAXException {
-        populateFlywayInstallersFile();
+    public void shouldContainerFlywayInstaller(JenkinsRule jenkinsRule) throws IOException, SAXException {
+        populateFlywayInstallersFile(jenkinsRule);
         JenkinsRule.WebClient webClient = jenkinsRule.createWebClient();
         HtmlPage configure = webClient.goTo("manage/configureTools");
         HtmlElement addButton = configure.getFirstByXPath("//button[contains(., 'Add Flyway')]");
         addButton.click();
     }
 
-    private void populateFlywayInstallersFile() throws IOException {
+    private void populateFlywayInstallersFile(JenkinsRule jenkinsRule) throws IOException {
         File dir = jenkinsRule.getInstance().getRootDir();
         File updatesDir = new File(dir, "updates");
         String updates = IOUtils.toString(
