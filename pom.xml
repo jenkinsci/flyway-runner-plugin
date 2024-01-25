@@ -47,7 +47,7 @@
     <flyway.install.version>9.22.3</flyway.install.version>
     <flyway.api.version>${flyway.install.version}-35.v1ed612b_0c48a_</flyway.api.version>
     <flyway.home>${project.build.directory}/flyway-${flyway.install.version}</flyway.home>
-    <configuration-as-code.version>1756.v2b_7eea_874392</configuration-as-code.version>
+    <configuration-as-code.version>1775.v810dc950b_514</configuration-as-code.version>
     <spotless.check.skip>false</spotless.check.skip>
   </properties>
 
