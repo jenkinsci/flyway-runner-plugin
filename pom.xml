@@ -45,7 +45,6 @@
     <gitHubRepo>jenkinsci/flyway-runner-plugin</gitHubRepo>
     <jenkins.version>2.414.3</jenkins.version>
     <flyway.install.version>9.22.3</flyway.install.version>
-    <flyway.api.version>${flyway.install.version}-59.v256230cf4a_09</flyway.api.version>
     <flyway.home>${project.build.directory}/flyway-${flyway.install.version}</flyway.home>
     <configuration-as-code.version>1775.v810dc950b_514</configuration-as-code.version>
     <spotless.check.skip>false</spotless.check.skip>
@@ -56,7 +55,7 @@
       <dependency>
         <groupId>io.jenkins.tools.bom</groupId>
         <artifactId>bom-2.414.x</artifactId>
-        <version>2791.v707dc5a_1626d</version>
+        <version>2805.v4398b_43dfc18</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -71,7 +70,6 @@
     <dependency>
       <groupId>io.jenkins.plugins</groupId>
       <artifactId>flyway-api</artifactId>
-      <version>${flyway.api.version}</version>
     </dependency>
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
