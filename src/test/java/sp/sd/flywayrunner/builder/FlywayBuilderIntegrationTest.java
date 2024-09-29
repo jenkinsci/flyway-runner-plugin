@@ -10,10 +10,7 @@ import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.domains.Domain;
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
-import hudson.model.FreeStyleBuild;
-import hudson.model.FreeStyleProject;
-import hudson.model.Label;
-import hudson.model.Result;
+import hudson.model.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -104,8 +101,8 @@ public class FlywayBuilderIntegrationTest {
     public void shouldUseCredentialsForDbAccess(JenkinsRule jenkinsRule, @TempDir Path temporaryFolder)
             throws Exception {
         setup(jenkinsRule, temporaryFolder);
-        String username = RandomStringUtils.randomAlphabetic(5);
-        String password = RandomStringUtils.randomAlphabetic(5);
+        String username = RandomStringUtils.insecure().nextAlphabetic(5);
+        String password = RandomStringUtils.insecure().nextAlphabetic(5);
         String credentialsId = createJenkinsCredentials(jenkinsRule, username, password);
 
         String jdbcUrl = createDatabase(jenkinsRule, temporaryFolder, username, password);
@@ -183,8 +180,8 @@ public class FlywayBuilderIntegrationTest {
     }
 
     private String createJenkinsCredentials(JenkinsRule jenkinsRule, String username, String password)
-            throws IOException {
-        String credentialsId = RandomStringUtils.randomAlphabetic(10);
+            throws IOException, Descriptor.FormException {
+        String credentialsId = RandomStringUtils.insecure().nextAlphabetic(10);
         Credentials credentials = new UsernamePasswordCredentialsImpl(
                 CredentialsScope.GLOBAL, credentialsId, "sample", username, password);
 
@@ -195,7 +192,8 @@ public class FlywayBuilderIntegrationTest {
         return credentialsId;
     }
 
-    private void createJenkinsPipelineCredentials(JenkinsRule jenkinsRule) throws IOException {
+    private void createJenkinsPipelineCredentials(JenkinsRule jenkinsRule)
+            throws IOException, Descriptor.FormException {
         Credentials credentials = new UsernamePasswordCredentialsImpl(
                 CredentialsScope.GLOBAL, "pipeline-credentials", "sample", "foo", "bar");
         CredentialsProvider.lookupStores(jenkinsRule.getInstance())
