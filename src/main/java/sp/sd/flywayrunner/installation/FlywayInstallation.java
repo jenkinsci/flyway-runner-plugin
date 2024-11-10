@@ -22,7 +22,7 @@ import jenkins.security.MasterToSlaveCallable;
 import net.sf.json.JSONObject;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerRequest2;
 
 /**
  * Flyway installation.  The "flywayHome" may either be the full path to the executable, or the directory in which
@@ -110,7 +110,7 @@ public class FlywayInstallation extends ToolInstallation
         }
 
         @Override
-        public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
+        public boolean configure(StaplerRequest2 req, JSONObject json) throws FormException {
             super.configure(req, json);
             save();
             return true;

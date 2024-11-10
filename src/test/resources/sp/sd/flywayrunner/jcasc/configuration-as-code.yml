@@ -1,11 +1,11 @@
 tool:
   flyway:
     installations:
-      - name: "flyway-9.22.3"
+      - name: "flyway-10.21.0"
         home: ""
         properties:
           - installSource:
               installers:
                 - zip:
-                    subdir: "flyway-9.22.3"
-                    url: "https://company.domain.ch/artifactory/central/org/flywaydb/flyway-commandline/9.22.3/flyway-commandline-9.22.3.tar.gz"
+                    subdir: "flyway-10.21.0"
+                    url: "https://company.domain.ch/artifactory/central/org/flywaydb/flyway-commandline/10.21.0/flyway-commandline-10.21.0.tar.gz"
