@@ -8,7 +8,6 @@ import com.cloudbees.plugins.credentials.common.StandardUsernameListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import com.google.common.base.Strings;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
@@ -107,7 +106,6 @@ public class FlywayBuilder extends Builder implements SimpleBuildStep, Serializa
         }
     }
 
-    @SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     private ArgumentListBuilder composeFlywayCommand(
             Run<?, ?> build, TaskListener listener, Launcher launcher, FilePath workspace) {
         ArgumentListBuilder cliCommand = new ArgumentListBuilder();
