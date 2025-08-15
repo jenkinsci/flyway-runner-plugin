@@ -1,6 +1,6 @@
 package sp.sd.flywayrunner.jcasc;
 
-import static org.junit.jupiter.api.Asserttions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import hudson.tools.InstallSourceProperty;
 import hudson.tools.ToolProperty;
