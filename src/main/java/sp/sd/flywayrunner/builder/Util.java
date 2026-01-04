@@ -4,6 +4,7 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.Computer;
@@ -15,7 +16,6 @@ import hudson.tools.ToolInstallation;
 import hudson.util.ArgumentListBuilder;
 import java.io.File;
 import java.io.IOException;
-import javax.annotation.Nullable;
 
 public class Util {
 
