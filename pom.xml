@@ -183,14 +183,6 @@
           </systemPropertyVariables>
         </configuration>
       </plugin>
-      <plugin>
-        <groupId>org.jenkins-ci.tools</groupId>
-        <artifactId>maven-hpi-plugin</artifactId>
-        <extensions>true</extensions>
-        <configuration>
-          <compatibleSinceVersion>1.9</compatibleSinceVersion>
-        </configuration>
-      </plugin>
     </plugins>
   </build>
 </project>
