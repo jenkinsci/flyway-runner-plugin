@@ -39,7 +39,7 @@
     <!-- https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
     <jenkins.baseline>2.516</jenkins.baseline>
     <jenkins.version>${jenkins.baseline}.3</jenkins.version>
-    <flyway.install.version>11.8.2</flyway.install.version>
+    <flyway.install.version>11.20.1</flyway.install.version>
     <flyway.home>${project.build.directory}/flyway-${flyway.install.version}</flyway.home>
     <spotless.check.skip>false</spotless.check.skip>
     <ban-junit4-imports.skip>false</ban-junit4-imports.skip>
