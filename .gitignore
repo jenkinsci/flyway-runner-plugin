@@ -29,3 +29,5 @@ libsrc/*
 *.json
 *.html
 
+# Never ignore .github/*
+!.github/*
