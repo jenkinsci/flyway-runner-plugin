@@ -6,8 +6,8 @@
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": [
-        "(^|/)pom\\.xml$"
+      "managerFilePatterns": [
+        "/(^|/)pom\\.xml$/"
       ],
       "matchStrings": [
         "<flyway.install.version>(?<currentValue>[^<]+)</flyway.install.version>"
