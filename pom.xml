@@ -43,6 +43,7 @@
     <flyway.install.archive>flyway-commandline-${flyway.install.version}-linux-x64.tar.gz</flyway.install.archive>
     <flyway.install.download.url>https://github.com/flyway/flyway/releases/download/flyway-${flyway.install.version}/${flyway.install.archive}</flyway.install.download.url>
     <flyway.install.archive.path>${project.build.directory}/${flyway.install.archive}</flyway.install.archive.path>
+    <flyway.install.sha256>83fafac27d9e4c79ff7306a021024dbfd8b21d252567fa0583fb313093f5ab30</flyway.install.sha256>
     <flyway.home>${project.build.directory}/flyway-${flyway.install.version}</flyway.home>
     <spotless.check.skip>false</spotless.check.skip>
     <ban-junit4-imports.skip>false</ban-junit4-imports.skip>
@@ -160,8 +161,13 @@
             </goals>
             <configuration>
               <target>
-                <get src="${flyway.install.download.url}" dest="${flyway.install.archive.path}" skipexisting="true" />
-                <untar src="${flyway.install.archive.path}" dest="${project.build.directory}" compression="gzip" overwrite="false" />
+                <get src="${flyway.install.download.url}" dest="${flyway.install.archive.path}" />
+                <checksum file="${flyway.install.archive.path}" algorithm="SHA-256" property="flyway.install.archive.actual.sha256" />
+                <condition property="flyway.install.sha256.valid">
+                  <equals arg1="${flyway.install.sha256}" arg2="${flyway.install.archive.actual.sha256}" />
+                </condition>
+                <fail unless="flyway.install.sha256.valid" message="Flyway archive checksum mismatch for ${flyway.install.archive.path}" />
+                <untar src="${flyway.install.archive.path}" dest="${project.build.directory}" compression="gzip" />
               </target>
             </configuration>
           </execution>
