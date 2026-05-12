@@ -154,14 +154,14 @@
         <executions>
           <execution>
             <id>download-flyway-commandline</id>
-            <phase>process-test-resources</phase>
             <goals>
               <goal>run</goal>
             </goals>
+            <phase>process-test-resources</phase>
             <configuration>
               <target>
-                <get src="${flyway.install.download.url}" dest="${flyway.install.archive.path}" />
-                <untar src="${flyway.install.archive.path}" dest="${project.build.directory}" compression="gzip" />
+                <get dest="${flyway.install.archive.path}" src="${flyway.install.download.url}" />
+                <untar compression="gzip" dest="${project.build.directory}" src="${flyway.install.archive.path}" />
                 <chmod file="${flyway.home}/flyway" perm="755" />
               </target>
             </configuration>
