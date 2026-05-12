@@ -162,6 +162,7 @@
               <target>
                 <get src="${flyway.install.download.url}" dest="${flyway.install.archive.path}" />
                 <untar src="${flyway.install.archive.path}" dest="${project.build.directory}" compression="gzip" />
+                <chmod file="${flyway.home}/flyway" perm="755" />
               </target>
             </configuration>
           </execution>
