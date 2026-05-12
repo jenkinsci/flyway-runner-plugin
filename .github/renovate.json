@@ -2,5 +2,19 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "github>jenkinsci/renovate-config"
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": [
+        "(^|/)pom\\.xml$"
+      ],
+      "matchStrings": [
+        "<flyway.install.version>(?<currentValue>[^<]+)</flyway.install.version>"
+      ],
+      "depNameTemplate": "flyway/flyway",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^flyway-(?<version>.+)$"
+    }
   ]
 }
