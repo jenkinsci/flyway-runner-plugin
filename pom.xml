@@ -39,7 +39,10 @@
     <!-- https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
     <jenkins.baseline>2.528</jenkins.baseline>
     <jenkins.version>${jenkins.baseline}.3</jenkins.version>
-    <flyway.install.version>11.8.2</flyway.install.version>
+    <flyway.install.version>12.6.0</flyway.install.version>
+    <flyway.install.archive>flyway-commandline-${flyway.install.version}-linux-x64.tar.gz</flyway.install.archive>
+    <flyway.install.download.url>https://github.com/flyway/flyway/releases/download/flyway-${flyway.install.version}/${flyway.install.archive}</flyway.install.download.url>
+    <flyway.install.archive.path>${project.build.directory}/${flyway.install.archive}</flyway.install.archive.path>
     <flyway.home>${project.build.directory}/flyway-${flyway.install.version}</flyway.home>
     <spotless.check.skip>false</spotless.check.skip>
     <ban-junit4-imports.skip>false</ban-junit4-imports.skip>
@@ -101,13 +104,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.flywaydb</groupId>
-      <artifactId>flyway-commandline</artifactId>
-      <version>${flyway.install.version}</version>
-      <type>tar.gz</type>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest</artifactId>
       <scope>test</scope>
@@ -154,25 +150,19 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
+        <artifactId>maven-antrun-plugin</artifactId>
         <executions>
           <execution>
-            <id>unpack</id>
-            <goals>
-              <goal>unpack</goal>
-            </goals>
+            <id>download-flyway-commandline</id>
             <phase>process-test-resources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
             <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>org.flywaydb</groupId>
-                  <artifactId>flyway-commandline</artifactId>
-                  <type>tar.gz</type>
-                  <overWrite>false</overWrite>
-                  <outputDirectory>${project.build.directory}</outputDirectory>
-                </artifactItem>
-              </artifactItems>
+              <target>
+                <get src="${flyway.install.download.url}" dest="${flyway.install.archive.path}" skipexisting="true" />
+                <untar src="${flyway.install.archive.path}" dest="${project.build.directory}" compression="gzip" overwrite="false" />
+              </target>
             </configuration>
           </execution>
         </executions>
