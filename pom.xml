@@ -39,7 +39,7 @@
     <!-- https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
     <jenkins.baseline>2.528</jenkins.baseline>
     <jenkins.version>${jenkins.baseline}.3</jenkins.version>
-    <flyway.install.version>12.6.0</flyway.install.version>
+    <flyway.install.version>12.7.0</flyway.install.version>
     <flyway.install.archive>flyway-commandline-${flyway.install.version}-linux-x64.tar.gz</flyway.install.archive>
     <flyway.install.download.url>https://github.com/flyway/flyway/releases/download/flyway-${flyway.install.version}/${flyway.install.archive}</flyway.install.download.url>
     <flyway.install.archive.path>${project.build.directory}/${flyway.install.archive}</flyway.install.archive.path>
