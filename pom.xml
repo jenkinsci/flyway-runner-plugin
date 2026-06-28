@@ -37,7 +37,7 @@
     <changelist>999999-SNAPSHOT</changelist>
     <gitHubRepo>jenkinsci/flyway-runner-plugin</gitHubRepo>
     <!-- https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
-    <jenkins.baseline>2.528</jenkins.baseline>
+    <jenkins.baseline>2.541</jenkins.baseline>
     <jenkins.version>${jenkins.baseline}.3</jenkins.version>
     <flyway.install.version>12.7.0</flyway.install.version>
     <flyway.install.archive>flyway-commandline-${flyway.install.version}-linux-x64.tar.gz</flyway.install.archive>
@@ -56,7 +56,7 @@
       <dependency>
         <groupId>io.jenkins.tools.bom</groupId>
         <artifactId>bom-${jenkins.baseline}.x</artifactId>
-        <version>6237.v4da_61a_4a_19e5</version>
+        <version>6641.vfe1b_b_3c48a_4a_</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
